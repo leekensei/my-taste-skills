@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+die() { printf '%s\n' "$*" >&2; exit 1; }
+[[ $# -gt 0 ]] || die 'Usage: bin/apply <role…>'
+command -v jq >/dev/null || die 'jq is required.'
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+config_dir=${CLAUDE_CONFIG_DIR:-"$HOME/.claude"}
+settings="$config_dir/settings.json"
+roles=()
+for role in "$@"; do
+  [[ "$role" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "Invalid role: $role"
+  file="$root/roles/$role.json"
+  [[ -f "$file" ]] || die "Unknown role: $role"
+  jq -e -s 'length == 1 and (.[0] | type == "object" and all(to_entries[]; (.key | test("^[^@ ]+@[^@ ]+$")) and .value == true))' "$file" >/dev/null || die "Invalid role file: $file"
+  roles+=("$file")
+done
+selected=$(jq -cs 'add' "${roles[@]}")
+jq -e -s 'length == 1 and (.[0] | type == "object" and all(.[]; (.source | type) == "object"))' "$root/marketplaces.json" >/dev/null || die 'Invalid marketplaces.json'
+jq -e --argjson selected "$selected" '. as $m | all($selected | keys[]; split("@")[1] as $name | $m | has($name))' "$root/marketplaces.json" >/dev/null || die 'Selected plugin has no marketplace declaration.'
+if [[ -e "$settings" ]]; then
+  jq -e -s 'length == 1 and (.[0] | type == "object" and ((.enabledPlugins // {}) | type == "object") and ((.extraKnownMarketplaces // {}) | type == "object"))' "$settings" >/dev/null || die 'Invalid settings.json; left untouched.'
+  input="$settings"
+else
+  input=/dev/null
+fi
+mkdir -p "$config_dir"
+umask 077
+tmp=$(mktemp "$config_dir/.settings.XXXXXX")
+trap 'rm -f "$tmp"' EXIT
+jq -s --argjson selected "$selected" --slurpfile markets "$root/marketplaces.json" '
+  (.[0] // {})
+  | .extraKnownMarketplaces = ((.extraKnownMarketplaces // {}) + $markets[0])
+  | .enabledPlugins = (((.enabledPlugins // {}) | map_values(false)) + $selected)
+' "$input" > "$tmp"
+if [[ -f "$settings" ]] && cmp -s "$settings" "$tmp"; then
+  printf 'Already applied: %s\n' "$*"
+  exit 0
+fi
+if [[ -f "$settings" ]]; then
+  backup=$(mktemp "$config_dir/settings.json.before-apply.XXXXXX")
+  cp -p "$settings" "$backup"
+  printf 'Backup: %s\n' "$backup"
+fi
+mv -f "$tmp" "$settings"
+printf 'Applied: %s → %s\n' "$*" "$settings"
