@@ -2,6 +2,7 @@
 set -euo pipefail
 
 die() { printf '%s\n' "$*" >&2; exit 1; }
+next_step() { printf '%s\n' 'Claude user settings only. Install missing plugins separately; start a new session or run /reload-plugins.'; }
 [[ $# -gt 0 ]] || die 'Usage: bin/apply <role…>'
 command -v jq >/dev/null || die 'jq is required.'
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
@@ -48,6 +49,7 @@ jq -s --argjson selected "$selected" --argjson markets "$markets" '
 ' "$input" > "$tmp"
 if [[ -f "$settings" ]] && cmp -s "$settings" "$tmp"; then
   printf 'Already applied: %s\n' "$*"
+  next_step
   exit 0
 fi
 if [[ -f "$settings" ]]; then
@@ -57,3 +59,4 @@ if [[ -f "$settings" ]]; then
 fi
 mv -f "$tmp" "$settings"
 printf 'Applied: %s → %s\n' "$*" "$settings"
+next_step

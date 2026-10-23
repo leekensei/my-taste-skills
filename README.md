@@ -21,6 +21,18 @@ Claude marketplace와 설정 적용기는 공통 본문을 연결하는 어댑�
 자동 검색을 지원하지 않으면 에이전트에게 해당 `SKILL.md`를 읽고 적용하도록 요청한다.
 본문은 특정 에이전트의 도구, 슬래시 명령, 하위 에이전트에 의존하지 않는다.
 
+예를 들어 Codex의 프로젝트 범위는 `.agents/skills/`다. 빈 대상 디렉터리에서 다음처럼
+표준 스킬 폴더를 복사하거나 심볼릭 링크로 연결할 수 있다:
+
+```sh
+mkdir -p /path/to/project/.agents/skills
+cp -R /path/to/my-taste-skills/skills/react-composition /path/to/project/.agents/skills/
+```
+
+외부 스킬도 원본의 `SKILL.md`와 `references/`, `rules/` 등 지원 파일을 포함한 디렉터리를
+그대로 설치한다. 다른 에이전트에서는 해당 에이전트의 검색 경로를 사용한다.
+스킬 파일의 호환성과 각 에이전트의 자동 검색·실행 검증 범위는 구분한다.
+
 외부 스킬은 원본에서 설치한다. 지원 에이전트와 설치 범위는 설치 도구에서 선택한다:
 
 ```sh
@@ -34,6 +46,8 @@ npx skills add vercel-labs/agent-skills --skill vercel-react-best-practices
 ## Claude Code 어댑터 사용법
 
 필요한 도구: Bash, jq, Git. 실제 스킬 실행에는 Claude Code가 필요하다.
+이 절의 명령과 `bin/apply`는 Claude 어댑터용이다. 다른 에이전트의 설치·역할 선택은
+앞의 표준 스킬 디렉터리 설치 절차를 따른다.
 
 ```sh
 git clone https://github.com/leekensei/my-taste-skills.git
@@ -66,6 +80,8 @@ CLAUDE_CONFIG_DIR="$(mktemp -d)" ./bin/apply uiux
 절대 경로로 바꾼다. 자체 marketplace는 이 clone을 가리키므로 clone을 이동하면 다시 적용한다.
 다른 설정(`env`, `permissions`, `hooks` 등)은 보존한다. 프로젝트·관리자 설정 등
 다른 범위의 활성화 여부까지 통제하는 명령은 아니다.
+개인 프로젝트에만 설치하려면 `claude plugin install <id> --scope local`, 팀 공유 설정이면
+`--scope project`를 사용한다. 이 경우 `bin/apply`가 project/local 설정까지 끈다고 가정하지 않는다.
 
 변경 전 설정은 같은 디렉터리의 `settings.json.before-apply.*`에 백업한다.
 출력된 백업 파일을 `settings.json`으로 복사하면 되돌릴 수 있다.
@@ -97,11 +113,25 @@ CLAUDE_CONFIG_DIR="$(mktemp -d)" ./bin/apply uiux
 
 1. 설정 병합 골격: 다른 설정 보존, 합집합, 명시적 비활성화, 반복 실행, 잘못된 입력 보호.
 2. 역할별 스킬 등재: `frontend`에 자체 제작 합성 스킬과 외부 FSD·Vercel React 스킬을 등록했다. `uiux`는 미등재.
-3. 깨끗한 환경에서 clone → apply → 실제 스킬 발동 및 상주 비용 확인.
+3. 깨끗한 checkout → 해당 에이전트의 표준 경로 설치 → 역할 선택·해제·복귀 → 실제 스킬 발동 확인.
 
 ③의 실제 모델 발동과 비용 확인까지 통과하는 것이 프로젝트 성공 기준이다.
 격리 설치 및 형식 검증과 실제 모델의 동작 품질 평가는 별도로 기록한다.
-자동 설치, marketplace 자동 인식, 실행 중 세션 반영 여부는 실측 후 여기에 기록한다.
+2026-10-23 로컬 Git 커밋의 새 clone과 격리 설정에서 Codex 실제 발동 및 Claude 어댑터 설치를
+검증했다. 원격 main은 아직 초기 커밋이므로 **GitHub에서 최신 구성을 clone하는 최종 검증은 남아 있다.**
+환경·증거·제약은 [설치 검증 기록](evaluations/2026-10-23-installation.md)에 있다.
+
+| 확인 항목 | 이번 실측 |
+| --- | --- |
+| Claude 설정 선언만으로 설치되는가 | `apply frontend` 직후 installed plugins와 marketplace 목록은 모두 빈 배열이었다. |
+| 선언만으로 marketplace가 인식되는가 | CLI add 없이 install하면 not_found로 실패했다. 명시적 marketplace add 후 install은 성공했다. |
+| 역할 전환 | Claude user 설정의 frontend → 빈 uiux → frontend+uiux, 반복 적용을 확인했다. |
+| Codex 실행 중 검색 변경 | 같은 app-server에서 `skills/list(forceReload=true)`로 3 → 0 → 3개를 확인했다. 자동 갱신이나 이미 시작한 턴의 내용 변경까지 검증한 것은 아니다. |
+| 실제 발동 | 전역 스킬을 끈 Codex에서 세 설치 파일을 읽은 도구 로그와 완료된 모델 응답을 확인했다. |
+
+Claude에서 이미 실행 중인 세션의 플러그인 변경 반영은 이번에 실측하지 않았다.
+새 세션 또는 `/reload-plugins`로 다시 로드한다. Claude 모델 로그인은 요구하지 않았고,
+다른 모든 에이전트에서 실행 검증했다고 해석하지 않는다.
 
 2026-10-21 ① 검증 기록 (macOS, Claude Code 2.1.301):
 

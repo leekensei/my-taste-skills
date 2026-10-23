@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-23",
+  "checkout_revision": "36bef8a174eb7fd3b3b27a4729db5e9ae47f53b1",
+  "clone_source": "local Git commit, --no-local",
+  "claude_version": "2.1.309",
+  "codex_version": "0.163.0-alpha.11.2",
+  "claude_auth": "not used; CLI metadata only",
+  "model": "gpt-6-luna",
+  "model_reasoning": "low",
+  "cost_estimates": {
+    "react-composition": 49,
+    "feature-sliced-design": 238,
+    "vercel-react-best-practices": 96,
+    "total": 383
+  },
+  "source_checks": [
+    {
+      "skill": "react-composition",
+      "source_revision": "36bef8a174eb7fd3b3b27a4729db5e9ae47f53b1",
+      "files": 6,
+      "tree_matches": true,
+      "skill_sha256": "2f7559c20841c88d8558cc99fac2eb154390b729b2edebd5be02f0633c307f53"
+    },
+    {
+      "skill": "feature-sliced-design",
+      "source_revision": "5e95aaebb84541742686e56352b7569acf4306f1",
+      "files": 12,
+      "tree_matches": true,
+      "skill_sha256": "880557f6c71a5d35d98cf1ef34cf939d67220677be91447945ce49e45eec9cdb"
+    },
+    {
+      "skill": "vercel-react-best-practices",
+      "source_revision": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "files": 76,
+      "tree_matches": true,
+      "skill_sha256": "71ed7794962fa6e803ee83030517b5b93a9f70fbfeb431ec4535c5480a8d8355"
+    }
+  ],
+  "model_turn_status": "completed",
+  "skill_reads": [
+    {
+      "command": "/bin/zsh -lc 'cat .agents/skills/react-composition/SKILL.md && cat .agents/skills/feature-sliced-design/SKILL.md && cat .agents/skills/vercel-react-best-practices/SKILL.md'",
+      "status": "completed",
+      "exit_code": 0,
+      "read_files": [
+        "TEMP/work/.agents/skills/react-composition/SKILL.md",
+        "TEMP/work/.agents/skills/feature-sliced-design/SKILL.md",
+        "TEMP/work/.agents/skills/vercel-react-best-practices/SKILL.md"
+      ]
+    }
+  ],
+  "refresh": [
+    {
+      "step": 10,
+      "enabled": [
+        {
+          "name": "feature-sliced-design",
+          "path": "TEMP/work/.agents/skills/feature-sliced-design/SKILL.md"
+        },
+        {
+          "name": "react-composition",
+          "path": "TEMP/work/.agents/skills/react-composition/SKILL.md"
+        },
+        {
+          "name": "vercel-react-best-practices",
+          "path": "TEMP/work/.agents/skills/vercel-react-best-practices/SKILL.md"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "step": 11,
+      "enabled": [],
+      "errors": []
+    },
+    {
+      "step": 12,
+      "enabled": [
+        {
+          "name": "feature-sliced-design",
+          "path": "TEMP/work/.agents/skills/feature-sliced-design/SKILL.md"
+        },
+        {
+          "name": "react-composition",
+          "path": "TEMP/work/.agents/skills/react-composition/SKILL.md"
+        },
+        {
+          "name": "vercel-react-best-practices",
+          "path": "TEMP/work/.agents/skills/vercel-react-best-practices/SKILL.md"
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "scope": "Logical isolation with fresh Claude config/cache, project skill directory, disabled existing global skills; same OS account and existing Codex authentication.",
+  "remote_main_revision": "78150ba263f1e927ac6240050912b709947766d7",
+  "remote_clone_verified": false,
+  "declaration_only": {
+    "installed": [],
+    "marketplaces": [],
+    "install_error": "not_found"
+  },
+  "claude_role_transitions": {
+    "frontend": {
+      "feature-sliced-design@my-taste-skills": true,
+      "react-composition@my-taste-skills": true,
+      "vercel-react-best-practices@my-taste-skills": true
+    },
+    "uiux": {
+      "feature-sliced-design@my-taste-skills": false,
+      "react-composition@my-taste-skills": false,
+      "vercel-react-best-practices@my-taste-skills": false
+    },
+    "frontend+uiux": {
+      "feature-sliced-design@my-taste-skills": true,
+      "react-composition@my-taste-skills": true,
+      "vercel-react-best-practices@my-taste-skills": true
+    }
+  }
+}
