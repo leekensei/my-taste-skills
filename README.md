@@ -11,13 +11,22 @@ Claude marketplace와 설정 적용기는 공통 본문을 연결하는 어댑�
 
 ## 에이전트 공통 사용
 
-현재 `frontend` 역할에는 [react-composition](skills/react-composition/SKILL.md)이 있다.
+현재 `frontend` 역할에는 [react-composition](skills/react-composition/SKILL.md)과
+외부 [feature-sliced-design](https://github.com/feature-sliced/skills),
+[vercel-react-best-practices](https://github.com/vercel-labs/agent-skills)가 있다.
 [역할 설명](roles/frontend.md)에 선택 이유·적용 범위·우선순위·비용을 기록한다.
 
 `skills/react-composition/` 디렉터리를 사용하는 에이전트의 스킬 검색 경로에
 복사하거나 연결한다. 자동 검색 경로와 설치 명령은 각 에이전트의 설정에 따른다.
 자동 검색을 지원하지 않으면 에이전트에게 해당 `SKILL.md`를 읽고 적용하도록 요청한다.
 본문은 특정 에이전트의 도구, 슬래시 명령, 하위 에이전트에 의존하지 않는다.
+
+외부 스킬은 원본에서 설치한다. 지원 에이전트와 설치 범위는 설치 도구에서 선택한다:
+
+```sh
+npx skills add feature-sliced/skills
+npx skills add vercel-labs/agent-skills --skill vercel-react-best-practices
+```
 
 범용 형식이라는 점과 모든 에이전트에서 자동 발동을 검증했다는 점은 다르다.
 검증 범위와 남은 항목은 [평가 기록](evaluations/react-composition.md)을 참고한다.
@@ -37,6 +46,8 @@ cd my-taste-skills
 ```sh
 claude plugin marketplace add "$PWD"
 claude plugin install react-composition@my-taste-skills
+claude plugin install feature-sliced-design@my-taste-skills
+claude plugin install vercel-react-best-practices@my-taste-skills
 ./bin/apply frontend
 ```
 
@@ -85,7 +96,7 @@ CLAUDE_CONFIG_DIR="$(mktemp -d)" ./bin/apply uiux
 ## 검증 단계
 
 1. 설정 병합 골격: 다른 설정 보존, 합집합, 명시적 비활성화, 반복 실행, 잘못된 입력 보호.
-2. 역할별 스킬 첫 등재: 현재 `frontend`에 자체 제작 스킬을 추가했다. `uiux`는 미등재.
+2. 역할별 스킬 등재: `frontend`에 자체 제작 합성 스킬과 외부 FSD·Vercel React 스킬을 등록했다. `uiux`는 미등재.
 3. 깨끗한 환경에서 clone → apply → 실제 스킬 발동 및 상주 비용 확인.
 
 ③의 실제 모델 발동과 비용 확인까지 통과하는 것이 프로젝트 성공 기준이다.
@@ -102,6 +113,9 @@ CLAUDE_CONFIG_DIR="$(mktemp -d)" ./bin/apply uiux
 설정 위치와 범위는 [Claude Code 공식 문서](https://code.claude.com/docs/en/settings)를 참고한다.
 출처 선언은 2026-10-21 로컬에 등록된 8개 공개 GitHub 소스를 기준으로 옮겼다.
 2026-10-22 자체 제작 스킬용 로컬 marketplace를 추가했다.
+2026-10-23 같은 marketplace에 외부 `feature-sliced/skills`의 스킬 경로를 연결했다.
+격리 Claude 설정에서 원격 설치 후 스킬 1개가 인식됨을 확인했다. 현재 사용자 설정은 변경하지 않았다.
+같은 날 Vercel React 스킬도 하위 디렉터리 소스로 연결하고, 다른 Vercel 스킬 없이 1개만 설치·인식됨을 격리 환경에서 확인했다.
 
 ## 레퍼런스와 평가 코드
 

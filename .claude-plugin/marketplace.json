@@ -1,6 +1,6 @@
 {
   "name": "my-taste-skills",
-  "description": "역할별 스킬 선택과 아티클을 바탕으로 직접 작성한 공통 스킬.",
+  "description": "직접 작성한 공통 스킬과 역할별로 선택한 외부 스킬.",
   "owner": {
     "name": "leekensei"
   },
@@ -13,6 +13,29 @@
       ],
       "version": "0.1.0",
       "description": "Orus 아티클을 바탕으로 React 컴포넌트 합성과 책임 경계를 판단하는 스킬."
+    },
+    {
+      "name": "feature-sliced-design",
+      "source": {
+        "source": "github",
+        "repo": "feature-sliced/skills"
+      },
+      "skills": [
+        "./feature-sliced-design"
+      ],
+      "description": "Feature-Sliced Design v2.1의 코드 배치, 계층과 import 경계 판단."
+    },
+    {
+      "name": "vercel-react-best-practices",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/vercel-labs/agent-skills.git",
+        "path": "skills/react-best-practices"
+      },
+      "skills": [
+        "./"
+      ],
+      "description": "Vercel Engineering의 React·Next.js 데이터 조회, 번들, 렌더링 성능 가이드."
     }
   ]
 }

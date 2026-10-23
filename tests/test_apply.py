@@ -47,6 +47,8 @@ class ApplyTests(unittest.TestCase):
             self.assertEqual(actual[key], original[key])
         self.assertEqual(actual["enabledPlugins"], {
             "other@external": False, "react-composition@my-taste-skills": True,
+            "feature-sliced-design@my-taste-skills": True,
+            "vercel-react-best-practices@my-taste-skills": True,
         })
         self.assertEqual(actual["extraKnownMarketplaces"]["external"], original["extraKnownMarketplaces"]["external"])
         source = actual["extraKnownMarketplaces"]["my-taste-skills"]["source"]
@@ -59,6 +61,8 @@ class ApplyTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.read_settings()["enabledPlugins"], {
             "react-composition@my-taste-skills": True, "other@omc": True,
+            "feature-sliced-design@my-taste-skills": True,
+            "vercel-react-best-practices@my-taste-skills": True,
         })
         before = self.settings.read_bytes()
         result = self.apply("frontend", "extra")
