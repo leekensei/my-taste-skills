@@ -1,0 +1,18 @@
+{
+  "name": "my-taste-skills",
+  "description": "역할별 스킬 선택과 아티클을 바탕으로 직접 작성한 공통 스킬.",
+  "owner": {
+    "name": "leekensei"
+  },
+  "plugins": [
+    {
+      "name": "react-composition",
+      "source": "./skills/react-composition",
+      "skills": [
+        "./"
+      ],
+      "version": "0.1.0",
+      "description": "Orus 아티클을 바탕으로 React 컴포넌트 합성과 책임 경계를 판단하는 스킬."
+    }
+  ]
+}

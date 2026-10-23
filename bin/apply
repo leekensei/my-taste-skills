@@ -18,6 +18,19 @@ done
 selected=$(jq -cs 'add' "${roles[@]}")
 jq -e -s 'length == 1 and (.[0] | type == "object" and all(.[]; (.source | type) == "object"))' "$root/marketplaces.json" >/dev/null || die 'Invalid marketplaces.json'
 jq -e --argjson selected "$selected" '. as $m | all($selected | keys[]; split("@")[1] as $name | $m | has($name))' "$root/marketplaces.json" >/dev/null || die 'Selected plugin has no marketplace declaration.'
+# Keep checkout-relative directory sources portable across machines and working directories.
+markets=$(jq --arg root "$root" '
+  with_entries(
+    if .value.source.source == "directory" then
+      .value.source.path |= (
+        if type != "string" or length == 0 then error("Invalid directory marketplace path")
+        elif startswith("/") then .
+        elif . == "." then $root
+        else $root + "/" + . end
+      )
+    else . end
+  )
+' "$root/marketplaces.json")
 if [[ -e "$settings" ]]; then
   jq -e -s 'length == 1 and (.[0] | type == "object" and ((.enabledPlugins // {}) | type == "object") and ((.extraKnownMarketplaces // {}) | type == "object"))' "$settings" >/dev/null || die 'Invalid settings.json; left untouched.'
   input="$settings"
@@ -28,9 +41,9 @@ mkdir -p "$config_dir"
 umask 077
 tmp=$(mktemp "$config_dir/.settings.XXXXXX")
 trap 'rm -f "$tmp"' EXIT
-jq -s --argjson selected "$selected" --slurpfile markets "$root/marketplaces.json" '
+jq -s --argjson selected "$selected" --argjson markets "$markets" '
   (.[0] // {})
-  | .extraKnownMarketplaces = ((.extraKnownMarketplaces // {}) + $markets[0])
+  | .extraKnownMarketplaces = ((.extraKnownMarketplaces // {}) + $markets)
   | .enabledPlugins = (((.enabledPlugins // {}) | map_values(false)) + $selected)
 ' "$input" > "$tmp"
 if [[ -f "$settings" ]] && cmp -s "$settings" "$tmp"; then

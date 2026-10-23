@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "existing-entrypoint",
+      "task": "React 18 앱에서 <Explorer />가 이미 여러 화면에서 사용 중이다. 호출부 변경 없이 문서 목록 공급자만 대체 가능하게 하고 싶다. API 호환성을 유지하며 실시간 공급과 로컬 fixture 공급을 구현하라. 목록과 개수는 같은 데이터 계약을 읽어야 하며 로딩·오류·빈 상태와 안정적인 key를 유지하라. fixture 사용 시 실시간 훅을 호출하지 않는다.",
+      "input_code": "type Document = { id: string; title: string };\ntype Snapshot = { documents: readonly Document[]; pending: boolean; error: string | null };\ndeclare function useLiveDocuments(): Snapshot;\nexport function Explorer() {\n  const { documents, pending, error } = useLiveDocuments();\n  if (pending) return <p role=\"status\">Loading</p>;\n  if (error) return <p role=\"alert\">{error}</p>;\n  if (documents.length === 0) return <p>No documents</p>;\n  return <section><h2>{documents.length}</h2><ul>{documents.map(document => <li key={document.id}>{document.title}</li>)}</ul></section>;\n}\n",
+      "criteria": {
+        "compatibility": "기존 <Explorer /> 호출이 계속 같은 실시간 기본 동작을 하며, 호출부 수정 없이 유지된다.",
+        "boundary": "공통 UI가 작은 데이터 계약을 소비하고, 실시간 훅은 실시간 공급 구현에서만 호출된다. fixture 공급은 실시간 훅을 실행하지 않는다.",
+        "preservation": "로딩·오류·빈 상태와 안정적인 key가 보존되고 fixture는 외부 네트워크 없이 제공된다.",
+        "minimality": "요구를 충족하는 데 필요한 경계만 추가하며 라우팅이나 데이터 계층 전체를 다시 만들지 않는다.",
+        "explanation": "설명이 실제 코드의 변경과 일치하며, 수행하지 않은 검증을 완료했다고 주장하지 않는다. 설계 판단을 코드와 연결해 설명한다."
+      }
+    },
+    {
+      "id": "fixture-props-boundary",
+      "task": "React 18 앱이다. 기존 실시간 <SearchResults />는 계속 사용한다. Storybook에서만 결과 배열을 지정해 같은 UI를 보여주고 싶다. Storybook 입력은 정적 fixture이고 로딩·오류·갱신은 필요 없다. 기존 호출부를 유지하고 요청에 맞는 최종 코드 및 실시간·Storybook 사용 예시를 제시하라.",
+      "input_code": "type Result = { id: string; label: string };\ndeclare function useSearchResults(): { results: readonly Result[]; pending: boolean; error: string | null };\nfunction ResultsView({ results }: { results: readonly Result[] }) {\n  return <ul>{results.map(result => <li key={result.id}>{result.label}</li>)}</ul>;\n}\nexport function SearchResults() {\n  const { results, pending, error } = useSearchResults();\n  if (pending) return <p role=\"status\">Searching</p>;\n  if (error) return <p role=\"alert\">{error}</p>;\n  return <ResultsView results={results} />;\n}\n",
+      "criteria": {
+        "compatibility": "기존 SearchResults 호출이 유지되고 기존 loading/error 동작이 사라지지 않는다.",
+        "requirement": "정적 fixture를 props 등 단순 주입으로 표시하는 Storybook 사용 예시가 있고 실시간 훅과 별도로 실행된다.",
+        "minimality": "단순 fixture에 별도 source context, provider 계층, query 추상화 또는 상태 저장소를 추가하지 않는다.",
+        "preservation": "결과 항목의 의미와 안정적인 key를 유지한다.",
+        "explanation": "설명이 실제 코드의 변경과 일치하며, 수행하지 않은 검증을 완료했다고 주장하지 않는다. 설계 판단을 코드와 연결해 설명한다."
+      }
+    },
+    {
+      "id": "reset-local-draft",
+      "task": "React 18 앱이다. BoardProvider는 기존 useBoardModel(boardId)를 한 번 호출해 하위 헤더·목록에 공유한다. 사용자가 boardId A에서 편집 중인 행이 있는 채로 B로 이동하면 B 데이터가 보여야 하고 A의 로컬 입력 초안이 B의 같은 id 행으로 넘어가면 안 된다. 프로젝트에 추가 라이브러리를 넣지 말고 최종 코드를 제시하라. useBoardModel은 주어진 계약을 따른다.",
+      "input_code": "import { createContext, useContext, useState, type ReactNode } from 'react';\ntype Entry = { id: string; title: string };\ntype Model = { entries: readonly Entry[]; pending: boolean; error: string | null; add: (title: string) => Promise<Entry> };\ndeclare function useBoardModel(boardId: string): Model;\nconst BoardContext = createContext<Model | null>(null);\nfunction useBoard() { const value = useContext(BoardContext); if (!value) throw new Error('BoardProvider is required'); return value; }\nfunction Row({ entry }: { entry: Entry }) { const [draft, setDraft] = useState(entry.title); return <li><input value={draft} onChange={event => setDraft(event.target.value)} /></li>; }\nfunction Header() { const board = useBoard(); return <header>{board.entries.length}</header>; }\nfunction List() { const board = useBoard(); return <ul>{board.entries.map(entry => <Row key={entry.id} entry={entry} />)}</ul>; }\nexport function BoardProvider({ boardId, children }: { boardId: string; children: ReactNode }) { const model = useBoardModel(boardId); return <BoardContext.Provider value={model}>{children}</BoardContext.Provider>; }\nexport function Board({ boardId }: { boardId: string }) { return <BoardProvider boardId={boardId}><Header /><List /></BoardProvider>; }\n",
+      "criteria": {
+        "state-reset": "boardId 변경 시 해당 보드 하위의 행 로컬 draft가 새 보드에 재사용되지 않도록 코드에서 초기화 경계를 둔다.",
+        "shared-state": "useBoardModel은 provider 경계에서 한 번 호출되고 헤더·목록은 같은 계약을 소비한다.",
+        "local-state": "행 draft는 편집 중 형제 업데이트나 일반 재렌더만으로 초기화되지 않으며 항목 key 안정성을 유지한다.",
+        "minimality": "별도 상태 라이브러리나 데이터 훅 재구현 없이 요구된 초기화만 해결한다.",
+        "explanation": "설명이 실제 코드의 변경과 일치하며, 수행하지 않은 검증을 완료했다고 주장하지 않는다. 설계 판단을 코드와 연결해 설명한다."
+      }
+    },
+    {
+      "id": "async-action-contract",
+      "task": "React 18 앱이다. 같은 문서 provider 아래 헤더와 목록에서 문서를 추가할 수 있어야 한다. 기존 add(title)은 Promise<Document>를 반환하고 실패 시 reject한다. provider에서 훅을 한 번만 호출한다. pending/error UI를 제공하고, 클릭 이벤트에서 rejection을 처리하되 호출자가 결과를 기다릴 수 있는 타입 계약을 유지한다. 행의 편집 초안과 key도 보존한다.",
+      "input_code": "import { createContext, useContext, useState, type ReactNode } from 'react';\ntype Document = { id: string; title: string };\ntype Model = { documents: readonly Document[]; add: (title: string) => Promise<Document>; pending: boolean; error: string | null };\ndeclare function useDocumentsModel(): Model;\nconst Context = createContext<Model | null>(null);\nfunction useDocuments() { const value = useContext(Context); if (!value) throw new Error('DocumentsProvider is required'); return value; }\nfunction DocumentRow({ document }: { document: Document }) { const [draft, setDraft] = useState(document.title); return <li><input value={draft} onChange={event => setDraft(event.target.value)} /></li>; }\nfunction Header() { const { add } = useDocuments(); return <header><button onClick={() => { void add('Untitled').catch(() => {}); }}>Add</button></header>; }\nfunction List() { const { documents } = useDocuments(); return <ul>{documents.map(document => <DocumentRow key={document.id} document={document} />)}</ul>; }\nexport function DocumentsProvider({ children }: { children: ReactNode }) { const model = useDocumentsModel(); return <Context.Provider value={model}>{children}</Context.Provider>; }\nexport function Documents() { const { pending, error } = useDocuments(); return <DocumentsProvider><Header /><List />{pending && <p role=\"status\">Saving</p>}{error && <p role=\"alert\">{error}</p>}</DocumentsProvider>; }\n",
+      "criteria": {
+        "provider-placement": "provider 밖에서 context를 읽지 않으며 헤더·목록·상태 표시가 모두 provider 하위에 렌더링된다.",
+        "async-contract": "add의 문자열 인자와 Promise<Document> 반환 및 reject 의미를 타입·호출에서 보존한다.",
+        "event-error": "버튼 이벤트에서 rejection을 처리하고 오류를 사용자에게 전달하는 경로가 코드에 있다.",
+        "pending-error": "pending과 오류 표시가 올바른 provider 계약에서 읽힌다.",
+        "state-identity": "행 draft는 provider 자식 재렌더 동안 유지되고 결과 map에 안정적인 key가 있다.",
+        "explanation": "설명이 실제 코드의 변경과 일치하며, 수행하지 않은 검증을 완료했다고 주장하지 않는다. 설계 판단을 코드와 연결해 설명한다."
+      }
+    },
+    {
+      "id": "ambiguous-layout-boundary",
+      "task": "React 18 앱이다. 두 제품 화면에서 같은 주문 정보의 배치가 다르다. 첫 화면은 제목-상태-금액, 두 번째는 제목-금액-상태 순서다. 두 화면 모두 앞으로 상태 옆에 임의의 보조 링크를 둘 수 있다. 현재 화면별 차이는 이것뿐이고 공통 상태·액션 공유 요구는 없다. dense는 모든 주문 행에서 의미가 같다. 기존 호출부를 필요 이상 바꾸지 않는 최종 코드와 두 사용 예시를 제시하라.",
+      "input_code": "import type { ReactNode } from 'react';\ntype Order = { id: string; title: string; status: string; amount: string };\ntype Props = { order: Order; dense?: boolean; status?: ReactNode; statusLink?: ReactNode; statusFirst?: boolean; showAmount?: boolean };\nexport function OrderRow({ order, dense = false, status, statusLink, statusFirst = true, showAmount = true }: Props) {\n  const statusPart = <span>{status ?? order.status}{statusLink}</span>;\n  const amountPart = showAmount && <span>{order.amount}</span>;\n  return <article data-density={dense ? 'compact' : 'normal'}><h3>{order.title}</h3>{statusFirst ? statusPart : amountPart}{statusFirst ? amountPart : statusPart}</article>;\n}\n",
+      "criteria": {
+        "layout": "두 사용 예시가 서로 다른 순서를 실제 JSX 구성으로 나타낸다.",
+        "extension": "보조 링크를 상태 영역과 함께 배치할 수 있는 명확한 composition point를 제공한다.",
+        "stable-property": "dense는 행 자체의 prop으로 유지되며 화면별 배치 플래그를 추가하지 않는다.",
+        "minimality": "공유 상태가 필요 없는 화면 배치 차이에 feature provider, 공통 상태 저장소 또는 외부 라이브러리를 추가하지 않는다.",
+        "preservation": "주문 title·status·amount 의미를 유지하고 상태 링크를 실제 JSX로 배치한다.",
+        "explanation": "설명이 실제 코드의 변경과 일치하며, 수행하지 않은 검증을 완료했다고 주장하지 않는다. 설계 판단을 코드와 연결해 설명한다."
+      }
+    }
+  ]
+}

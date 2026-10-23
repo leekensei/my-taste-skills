@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "keep-simple",
+      "task": "React 18 프로젝트다. 두 호출부 모두 label과 tone만 사용하고 변경 요구는 없다. 구조 통일을 위해 provider를 넣자는 제안을 검토하고, 유지할 최종 코드와 이유를 제시하라.",
+      "input_code": "type Props = { label: string; tone: 'info' | 'warning' };\nexport function StatusLabel({ label, tone }: Props) {\n  return <span data-tone={tone}>{label}</span>;\n}\n",
+      "criteria": {
+        "requirement": "label과 tone으로 표시하는 기존 API와 출력 의미를 유지한다.",
+        "minimality": "기능 요구 없이 context, provider, 상태 저장소나 새 의존성을 도입하지 않는다.",
+        "explanation": "설명이 실제 코드의 변경과 일치하며, 수행하지 않은 검증을 완료했다고 주장하지 않는다. 설계 판단을 코드와 연결해 설명한다."
+      }
+    },
+    {
+      "id": "compose-row",
+      "task": "React 18 프로젝트다. 새 화면에서는 상태 표시 앞에 액션 버튼 두 개를 놓아야 하고, 다른 화면에서는 상태 표시를 본문 옆에 둬야 한다. 화면별 플래그를 더 늘리지 않는 조립 API와 두 화면의 사용 코드를 제시하라. dense는 유지하라. 라우팅·데이터 조회 변경은 필요 없다.",
+      "input_code": "import type { ReactNode } from 'react';\ntype Props = { title: string; dense?: boolean; showStatus?: boolean; status?: ReactNode; action?: ReactNode };\nexport function Row({ title, dense = false, showStatus, status, action }: Props) {\n  return <div data-density={dense ? 'compact' : 'normal'}><span>{title}</span>{showStatus && status}{action}</div>;\n}\n",
+      "criteria": {
+        "requirement": "결과 코드의 두 호출 예시가 요청한 서로 다른 배치를 실제 JSX로 표현한다. 설명만 하거나 새 배치 플래그로 대체하지 않는다.",
+        "boundary": "배치 선택은 호출부에 있고, 행의 공통 표현은 재사용 가능한 부분에 있다. dense는 행 자체의 prop으로 남는다.",
+        "preservation": "액션은 유효한 버튼으로 배치할 수 있고 상호작용 요소를 중첩하지 않는다. React 18에서 지원하는 문법을 쓴다.",
+        "minimality": "데이터 출처용 feature context, 서버 상태 계층, 새 UI 라이브러리를 불필요하게 도입하지 않는다.",
+        "explanation": "설명이 실제 코드의 변경과 일치하며, 수행하지 않은 검증을 완료했다고 주장하지 않는다. 설계 판단을 코드와 연결해 설명한다."
+      }
+    },
+    {
+      "id": "swap-source",
+      "task": "React 18 프로젝트다. 목록과 개수 헤더가 같은 계약을 읽도록 만들고, 실시간 데이터와 오프라인 fixture 공급자를 각각 연결하는 코드를 제시하라. 실시간 모드의 로딩·오류·빈 상태를 보존하라. fixture를 렌더링할 때 실시간 훅을 호출하면 안 된다. useLiveDocuments는 기존 훅이며 구현 변경 대상이 아니다.",
+      "input_code": "type Document = { id: string; title: string };\ntype Snapshot = { documents: readonly Document[]; pending: boolean; error: string | null };\ndeclare function useLiveDocuments(): Snapshot;\nexport function Explorer() {\n  const { documents, pending, error } = useLiveDocuments();\n  if (pending) return <p role=\"status\">Loading</p>;\n  if (error) return <p role=\"alert\">{error}</p>;\n  if (!documents.length) return <p>No documents</p>;\n  return <section><h2>{documents.length}</h2><ul>{documents.map(d => <li key={d.id}>{d.title}</li>)}</ul></section>;\n}\n",
+      "criteria": {
+        "requirement": "실시간·fixture 공급 코드와 두 공급자를 같은 UI에 연결하는 사용 코드가 있다.",
+        "boundary": "목록·개수 소비자는 작은 공유 계약을 읽고 실시간 조회 훅이나 출처 선택을 직접 알지 않는다. 실시간 훅은 실시간 공급 경계에서만 호출한다.",
+        "preservation": "로딩·오류·빈 상태와 안정적인 항목 key를 결과 코드에서 유지한다. fixture는 네트워크 클라이언트 없이 구성된다.",
+        "compatibility": "React 18 API를 사용하고 필수 provider 누락을 명확한 오류로 드러낸다.",
+        "explanation": "설명이 실제 코드의 변경과 일치하며, 수행하지 않은 검증을 완료했다고 주장하지 않는다. 설계 판단을 코드와 연결해 설명한다."
+      }
+    },
+    {
+      "id": "share-action",
+      "task": "React 18 프로젝트다. 새 헤더의 버튼과 목록이 같은 보드 상태를 사용하도록 최종 코드와 조립 예시를 제시하라. useBoardModel은 provider 경계에서 한 번 호출해야 한다. add(title)는 성공 시 목록을 갱신하고 실패 시 reject한다. pending과 error를 표시하고, 행의 편집 중 입력값은 형제 추가로 초기화되면 안 된다. 기존 훅 자체는 바꾸지 말라.",
+      "input_code": "import { useState } from 'react';\ntype Entry = { id: string; title: string };\ndeclare function useBoardModel(boardId: string): { entries: readonly Entry[]; add: (title: string) => Promise<Entry>; pending: boolean; error: string | null };\nfunction Row({ entry }: { entry: Entry }) {\n  const [draft, setDraft] = useState(entry.title);\n  return <li><input aria-label={entry.title} value={draft} onChange={e => setDraft(e.target.value)} /></li>;\n}\nfunction Body({ entries, onAdd }: { entries: readonly Entry[]; onAdd: () => Promise<Entry> }) {\n  return <div><button onClick={() => { void onAdd().catch(() => {}); }}>Add</button><ul>{entries.map(e => <Row key={e.id} entry={e} />)}</ul></div>;\n}\nexport function Board({ boardId }: { boardId: string }) {\n  const model = useBoardModel(boardId);\n  return <section>{model.pending && <p role=\"status\">Saving</p>}{model.error && <p role=\"alert\">{model.error}</p>}<Body entries={model.entries} onAdd={() => model.add('Untitled')} /></section>;\n}\n",
+      "criteria": {
+        "requirement": "헤더 버튼과 목록이 동일한 보드 provider 하위에 조립되며 useBoardModel 호출 지점이 하나다.",
+        "boundary": "provider가 상태·액션 계약을 공급하고 중간 레이아웃은 액션을 전달만 하지 않는다. 행 draft는 로컬에 남고 안정적인 key를 유지한다.",
+        "preservation": "add의 title 인자·Promise 결과·실패 전파를 계약에서 유지한다. 이벤트 호출의 rejection을 처리하며 pending과 error를 사용자에게 표시한다.",
+        "minimality": "조회·변경 훅을 다시 구현하거나 별도 저장소·전역 상태를 추가하지 않는다.",
+        "explanation": "설명이 실제 코드의 변경과 일치하며, 수행하지 않은 검증을 완료했다고 주장하지 않는다. 설계 판단을 코드와 연결해 설명한다."
+      }
+    },
+    {
+      "id": "styling-only",
+      "task": "이 카드의 모서리를 12px에서 8px로, 테두리 색을 #ccc에서 #aaa로 바꿔라. API와 구조 변경은 요청하지 않는다. 최종 코드와 변경 이유를 제시하라.",
+      "input_code": "export function Card({ title }: { title: string }) {\n  return <article style={{ borderRadius: 12, border: '1px solid #ccc' }}><h2>{title}</h2></article>;\n}\n",
+      "criteria": {
+        "requirement": "실제 코드의 borderRadius가 8이고 border 색이 #aaa다.",
+        "preservation": "title API, article/h2 의미와 기존 테두리 두께·종류를 유지한다.",
+        "minimality": "합성 구조 변경, 새 하위 컴포넌트, provider나 의존성 도입 없이 요청한 스타일만 변경한다.",
+        "explanation": "설명이 실제 코드의 변경과 일치하며, 수행하지 않은 검증을 완료했다고 주장하지 않는다. 설계 판단을 코드와 연결해 설명한다."
+      }
+    }
+  ]
+}

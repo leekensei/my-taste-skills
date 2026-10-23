@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "stable-props",
+      "prompt": "Review a React StatusLabel that takes label and tone and has no internal state. Two callers use exactly that API. A teammate wants a feature provider so it matches the rest of the app. Give the smallest useful composition decision.",
+      "expected": {"applicable": true, "ui_api": "props", "feature_context": false, "source_boundary": false, "shared_action_boundary": false}
+    },
+    {
+      "id": "variable-layout",
+      "prompt": "DocumentRow has title, subtitle, showOwner, showDownload, showMenu, secondaryAction and dense props. The new screen needs two action buttons before an arbitrary status element; adding another flag is becoming routine. Propose a reusable API. There is no data fetching or shared feature state. A private context can coordinate grouped list semantics if needed. Keep density configurable.",
+      "expected": {"applicable": true, "ui_api": "parts", "feature_context": false, "source_boundary": false, "shared_action_boundary": false, "keep_density_prop": true}
+    },
+    {
+      "id": "interchangeable-sources",
+      "prompt": "A document explorer renders the same nested list, count header and empty view in live and offline modes. Different providers must be independently mountable, and every consumer must render against the same typed data shape without importing the live query. Offline fixtures must render all three consumers without a network client. Propose the source and rendering boundary; there are no mutations.",
+      "expected": {"applicable": true, "feature_context": true, "source_boundary": true, "shared_action_boundary": false, "fixture_without_network": true}
+    },
+    {
+      "id": "sibling-actions",
+      "prompt": "An add-entry action is forwarded through four layout layers to a board. A new sibling header must invoke the same action. Creating an entry returns a Promise<Entry> and can reject; the UI shows pending and error states. Each existing item has its own unsaved local editing draft that must survive adding a sibling. Choose ownership and preserve behavior.",
+      "expected": {"applicable": true, "feature_context": true, "shared_action_boundary": true, "local_interaction_state": "local", "preserve_async_errors": true}
+    },
+    {
+      "id": "effect-query-deferral",
+      "prompt": "An inactive Saved panel stays mounted with display:none. Its provider starts fetching in useEffect on mount. The only requirement is zero Saved requests before the user selects it. Someone proposes wrapping the existing panel in Suspense with no other changes. The project can conditionally mount the provider or use the query library's enabled flag. Choose an effective fix without restructuring unrelated APIs.",
+      "expected": {"applicable": true, "loading": ["conditional-mount", "query-enabled"], "feature_context": false, "ui_api": "unchanged"}
+    },
+    {
+      "id": "react18-fixture",
+      "prompt": "React 18 is fixed for this release. An existing required feature context already serves interchangeable remote sources. Add a static fixture provider for a network-free story using the installed context APIs. No other architecture changes are requested. A proposed patch uses React use(Context) and renders Context directly as a provider. Describe the compatible decision.",
+      "expected": {"applicable": true, "compatibility": "keep-react-version", "context_api": "useContext-and-Provider", "fixture_without_network": true}
+    },
+    {
+      "id": "css-only",
+      "prompt": "Only reduce a React card's border radius from 12px to 8px and change its border color. Its props, callers, data source and state behavior should stay as they are. Decide whether a composition refactor belongs in this task.",
+      "expected": {"applicable": false, "ui_api": "unchanged", "feature_context": false, "source_boundary": false, "shared_action_boundary": false}
+    }
+  ]
+}

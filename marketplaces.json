@@ -1,4 +1,10 @@
 {
+  "my-taste-skills": {
+    "source": {
+      "source": "directory",
+      "path": "."
+    }
+  },
   "claude-plugins-official": {
     "source": {
       "source": "github",
