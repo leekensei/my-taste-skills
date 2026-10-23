@@ -1,7 +1,7 @@
 {
   "date": "2026-10-23",
-  "checkout_revision": "36bef8a174eb7fd3b3b27a4729db5e9ae47f53b1",
-  "clone_source": "local Git commit, --no-local",
+  "checkout_revision": "fd5e8604439d050d9ffc05049373e9a5a00c706d",
+  "clone_source": "https://github.com/leekensei/my-taste-skills.git",
   "claude_version": "2.1.309",
   "codex_version": "0.163.0-alpha.11.2",
   "claude_auth": "not used; CLI metadata only",
@@ -16,7 +16,7 @@
   "source_checks": [
     {
       "skill": "react-composition",
-      "source_revision": "36bef8a174eb7fd3b3b27a4729db5e9ae47f53b1",
+      "source_revision": "fd5e8604439d050d9ffc05049373e9a5a00c706d",
       "files": 6,
       "tree_matches": true,
       "skill_sha256": "2f7559c20841c88d8558cc99fac2eb154390b729b2edebd5be02f0633c307f53"
@@ -39,13 +39,27 @@
   "model_turn_status": "completed",
   "skill_reads": [
     {
-      "command": "/bin/zsh -lc 'cat .agents/skills/react-composition/SKILL.md && cat .agents/skills/feature-sliced-design/SKILL.md && cat .agents/skills/vercel-react-best-practices/SKILL.md'",
+      "command": "/bin/zsh -lc \"cat 'TEMP/work/.agents/skills/feature-sliced-design/SKILL.md'\"",
       "status": "completed",
       "exit_code": 0,
       "read_files": [
-        "TEMP/work/.agents/skills/react-composition/SKILL.md",
-        "TEMP/work/.agents/skills/feature-sliced-design/SKILL.md",
+        "TEMP/work/.agents/skills/feature-sliced-design/SKILL.md"
+      ]
+    },
+    {
+      "command": "/bin/zsh -lc \"cat 'TEMP/work/.agents/skills/vercel-react-best-practices/SKILL.md'\"",
+      "status": "completed",
+      "exit_code": 0,
+      "read_files": [
         "TEMP/work/.agents/skills/vercel-react-best-practices/SKILL.md"
+      ]
+    },
+    {
+      "command": "/bin/zsh -lc \"cat 'TEMP/work/.agents/skills/react-composition/SKILL.md'\"",
+      "status": "completed",
+      "exit_code": 0,
+      "read_files": [
+        "TEMP/work/.agents/skills/react-composition/SKILL.md"
       ]
     }
   ],
@@ -93,12 +107,12 @@
     }
   ],
   "scope": "Logical isolation with fresh Claude config/cache, project skill directory, disabled existing global skills; same OS account and existing Codex authentication.",
-  "remote_main_revision": "78150ba263f1e927ac6240050912b709947766d7",
-  "remote_clone_verified": false,
+  "remote_main_revision": "fd5e8604439d050d9ffc05049373e9a5a00c706d",
+  "remote_clone_verified": true,
   "declaration_only": {
     "installed": [],
     "marketplaces": [],
-    "install_error": "not_found"
+    "install_error": "not_found (prior isolated local-clone negative probe)"
   },
   "claude_role_transitions": {
     "frontend": {

@@ -117,8 +117,8 @@ CLAUDE_CONFIG_DIR="$(mktemp -d)" ./bin/apply uiux
 
 ③의 실제 모델 발동과 비용 확인까지 통과하는 것이 프로젝트 성공 기준이다.
 격리 설치 및 형식 검증과 실제 모델의 동작 품질 평가는 별도로 기록한다.
-2026-10-23 로컬 Git 커밋의 새 clone과 격리 설정에서 Codex 실제 발동 및 Claude 어댑터 설치를
-검증했다. 원격 main은 아직 초기 커밋이므로 **GitHub에서 최신 구성을 clone하는 최종 검증은 남아 있다.**
+2026-10-23 GitHub의 commit `fd5e860`을 새로 clone한 뒤 격리 설정에서
+frontend 세 스킬의 설치·역할 전환, Codex 실제 발동 및 Claude 어댑터 비용 확인을 통과했다.
 환경·증거·제약은 [설치 검증 기록](evaluations/2026-10-23-installation.md)에 있다.
 
 | 확인 항목 | 이번 실측 |
